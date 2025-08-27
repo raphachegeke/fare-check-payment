@@ -1,31 +1,36 @@
 const axios = require("axios");
+const querystring = require("querystring");
 
 module.exports = async (req, res) => {
   try {
-    const { text, phoneNumber, sessionId, serviceCode } = req.body || {};
+    // AT sends as x-www-form-urlencoded
+    const body =
+      typeof req.body === "string"
+        ? querystring.parse(req.body)
+        : req.body;
+
+    const { text, phoneNumber } = body || {};
     const parts = text ? text.split("*") : [];
 
-    if (parts.length === 0 || text === "") {
-      // Step 1: Conductor starts session
+    if (!text || text === "") {
+      // Step 1: Start session
       return res
         .status(200)
         .send("CON Welcome to Matatu Pay\nEnter passenger phone number:");
     }
 
     if (parts.length === 1) {
-      // Step 2: Enter passenger phone
-      const passengerPhone = parts[0];
+      // Step 2: Passenger phone entered
       return res
         .status(200)
-        .send(`CON Passenger: ${passengerPhone}\nEnter fare amount (KES):`);
+        .send(`CON Passenger: ${parts[0]}\nEnter fare amount (KES):`);
     }
 
     if (parts.length >= 2) {
-      // Step 3: Enter amount -> trigger STK push
+      // Step 3: Amount entered -> trigger STK push
       const passengerPhone = parts[0];
       const amount = parts[1];
 
-      // Fire Daraja STK push in background
       axios
         .post("https://fare-check.vercel.app/stkpush", {
           phoneNumber: passengerPhone,
@@ -38,15 +43,12 @@ module.exports = async (req, res) => {
           console.error("STK Push error:", err.response?.data || err.message)
         );
 
-      // Respond immediately to USSD
       return res
         .status(200)
         .send("END Payment request sent to passenger. Await confirmation.");
     }
-  } catch (error) {
-    console.error("USSD error:", error);
-    return res.status(500).send("END Server error. Try again later.");
+  } catch (err) {
+    console.error("USSD error:", err);
+    return res.status(200).send("END Server error. Try again later.");
   }
 };
-
-// end 
