@@ -1,44 +1,36 @@
 module.exports = async (req, res) => {
   try {
-    const callbackData = req.body;
+    // Safaricom sends JSON → make sure body is parsed
+    const data =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
-    console.log("📩 Daraja Callback Received:", JSON.stringify(callbackData));
+    console.log("📩 Daraja Callback Received:", JSON.stringify(data, null, 2));
 
-    if (callbackData.Body?.stkCallback) {
-      const stk = callbackData.Body.stkCallback;
-
-      const resultCode = stk.ResultCode;
-      const resultDesc = stk.ResultDesc;
-      const merchantRequestID = stk.MerchantRequestID;
-      const checkoutRequestID = stk.CheckoutRequestID;
-
-      let receipt = null;
-      let amount = null;
-      let phone = null;
-
-      if (stk.CallbackMetadata && stk.CallbackMetadata.Item) {
-        stk.CallbackMetadata.Item.forEach((item) => {
-          if (item.Name === "MpesaReceiptNumber") receipt = item.Value;
-          if (item.Name === "Amount") amount = item.Value;
-          if (item.Name === "PhoneNumber") phone = item.Value;
-        });
-      }
-
-      console.log("✅ Parsed Payment:", {
-        resultCode,
-        resultDesc,
-        merchantRequestID,
-        checkoutRequestID,
-        receipt,
-        amount,
-        phone,
-      });
+    if (!data?.Body?.stkCallback) {
+      console.error("❌ Callback error: Missing stkCallback in response");
+      return res.status(400).send("Missing stkCallback");
     }
 
-    // Acknowledge to Safaricom
-    res.status(200).json({ message: "Callback received successfully" });
+    const callback = data.Body.stkCallback;
+    const resultCode = callback.ResultCode;
+    const resultDesc = callback.ResultDesc;
+    const metadata = callback.CallbackMetadata || {};
+    const items = metadata.Item || [];
+
+    // Extract receipt number + amount + phone
+    const receipt = items.find((i) => i.Name === "MpesaReceiptNumber")?.Value;
+    const amount = items.find((i) => i.Name === "Amount")?.Value;
+    const phone = items.find((i) => i.Name === "PhoneNumber")?.Value;
+
+    console.log("✅ Payment Result:");
+    console.log("  Receipt:", receipt);
+    console.log("  Amount:", amount);
+    console.log("  Phone:", phone);
+    console.log("  Code:", resultCode, "-", resultDesc);
+
+    return res.status(200).json({ message: "Callback received" });
   } catch (error) {
     console.error("❌ Callback error:", error.message);
-    res.status(500).json({ error: "Failed to process callback" });
+    return res.status(500).send("Server error in callback");
   }
 };
