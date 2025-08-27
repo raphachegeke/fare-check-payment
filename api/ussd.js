@@ -33,8 +33,8 @@ module.exports = async (req, res) => {
       const passengerPhone = parts[0];
       const amount = parts[1];
 
-      // 🔗 Call stkpush API (absolute URL for Vercel)
       try {
+        // 🔗 Always call full API path
         await axios.post("https://fare-check.vercel.app/api/stkpush", {
           phoneNumber: passengerPhone,
           amount: amount,
@@ -45,9 +45,7 @@ module.exports = async (req, res) => {
           .send("END Payment request sent to passenger. Await confirmation.");
       } catch (err) {
         console.error("❌ Error calling stkpush:", err.response?.data || err.message);
-        return res
-          .status(200)
-          .send("END Failed to initiate payment. Try again.");
+        return res.status(200).send("END Failed to initiate payment. Try again.");
       }
     }
   } catch (error) {
