@@ -34,8 +34,7 @@ module.exports = async (req, res) => {
       const amount = parts[1];
 
       try {
-        // 🔗 Always call full API path
-        await axios.post("https://fare-check.vercel.app/api/stkpush", {
+        await axios.post("https://fare-check.vercel.app/stkpush", {
           phoneNumber: passengerPhone,
           amount: amount,
         });

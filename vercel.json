@@ -1,14 +1,11 @@
 {
   "version": 2,
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "builds": [
+    { "src": "api/*.js", "use": "@vercel/node" }
+  ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.js"
-    }
+    { "src": "/ussd", "dest": "/api/ussd.js" },
+    { "src": "/stkpush", "dest": "/api/stkpush.js" },
+    { "src": "/daraja-callback", "dest": "/api/daraja-callback.js" }
   ]
 }
