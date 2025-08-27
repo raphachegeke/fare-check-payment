@@ -1,51 +1,39 @@
-// ussd.js
-const express = require("express");
-const bodyParser = require("body-parser");
+// api/ussd.js
 
-const app = express();
-// AT sends application/x-www-form-urlencoded by default
-app.use(bodyParser.urlencoded({ extended: false }));
+module.exports = async (req, res) => {
+  try {
+    // Parse form data (Vercel parses JSON automatically, not urlencoded)
+    let text = "";
+    let phoneNumber = "";
+    let sessionId = "";
+    let serviceCode = "";
 
-// Utility: clean phone to MSISDN format (very light for now)
-function normalizeMsisdn(input) {
-  let msisdn = input.replace(/\s+/g, "");
-  if (msisdn.startsWith("0")) msisdn = "+254" + msisdn.slice(1);
-  if (msisdn.startsWith("254")) msisdn = "+" + msisdn;
-  return msisdn;
-}
+    if (req.body) {
+      text = req.body.text || "";
+      phoneNumber = req.body.phoneNumber || "";
+      sessionId = req.body.sessionId || "";
+      serviceCode = req.body.serviceCode || "";
+    }
 
-app.post("/ussd", (req, res) => {
-  const { sessionId, phoneNumber, serviceCode, text } = req.body;
+    const parts = text ? text.split("*") : [];
 
-  // Split user inputs by "*"
-  const parts = text ? text.split("*") : [];
+    if (parts.length === 0 || text === "") {
+      return res.status(200).send("CON Welcome to Matatu Pay\nEnter passenger phone number:");
+    }
 
-  if (parts.length === 0 || text === "") {
-    // First screen
-    return res.send("CON Welcome to Matatu Pay\nEnter passenger phone number:");
+    if (parts.length === 1) {
+      const passengerPhone = parts[0];
+      return res.status(200).send(`CON Passenger: ${passengerPhone}\nEnter fare amount (KES):`);
+    }
+
+    if (parts.length >= 2) {
+      const passengerPhone = parts[0];
+      const amount = parts[1];
+      // TODO: trigger Daraja STK Push here later
+      return res.status(200).send("END Payment request sent to passenger.");
+    }
+  } catch (error) {
+    console.error("USSD error:", error);
+    return res.status(500).send("END Server error. Try again later.");
   }
-
-  if (parts.length === 1) {
-    // Got phone, ask amount
-    const passengerPhone = normalizeMsisdn(parts[0]);
-    return res.send(
-      `CON Passenger: ${passengerPhone}\nEnter fare amount (KES):`
-    );
-  }
-
-  if (parts.length >= 2) {
-    const passengerPhone = normalizeMsisdn(parts[0]);
-    const amount = parts[1];
-
-    // TODO (Step 2): trigger Daraja STK push here.
-    // You will pass { passengerPhone, amount } to your STK function.
-
-    // Finish the USSD session for now
-    return res.send("END Payment request sent to passenger.");
-  }
-});
-
-// Start server (use your preferred port)
-app.listen(3000, () => console.log("USSD server running on :3000"));
-
-// end
+};
