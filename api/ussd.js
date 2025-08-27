@@ -47,3 +47,5 @@ app.post("/ussd", (req, res) => {
 
 // Start server (use your preferred port)
 app.listen(3000, () => console.log("USSD server running on :3000"));
+
+// end
