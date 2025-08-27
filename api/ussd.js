@@ -33,22 +33,21 @@ module.exports = async (req, res) => {
       const passengerPhone = parts[0];
       const amount = parts[1];
 
-      // 🔗 Trigger Daraja STK Push by calling your stkpush API
+      // 🔗 Call stkpush API (absolute URL for Vercel)
       try {
-        await axios.post(
-          `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host}/api/stkpush`,
-          {
-            phoneNumber: passengerPhone,
-            amount: amount,
-          }
-        );
+        await axios.post("https://fare-check.vercel.app/api/stkpush", {
+          phoneNumber: passengerPhone,
+          amount: amount,
+        });
 
         return res
           .status(200)
           .send("END Payment request sent to passenger. Await confirmation.");
       } catch (err) {
-        console.error("❌ Error calling stkpush:", err.message);
-        return res.status(200).send("END Failed to initiate payment. Try again.");
+        console.error("❌ Error calling stkpush:", err.response?.data || err.message);
+        return res
+          .status(200)
+          .send("END Failed to initiate payment. Try again.");
       }
     }
   } catch (error) {
