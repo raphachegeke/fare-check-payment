@@ -1,15 +1,11 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/ussd.js",
-      "use": "@vercel/node"
-    }
+    { "src": "api/*.js", "use": "@vercel/node" }
   ],
   "routes": [
-    {
-      "src": "/ussd",
-      "dest": "/api/ussd.js"
-    }
+    { "src": "/ussd", "dest": "/api/ussd.js" },
+    { "src": "/stkpush", "dest": "/api/stkpush.js" },
+    { "src": "/daraja-callback", "dest": "/api/daraja-callback.js" }
   ]
 }
