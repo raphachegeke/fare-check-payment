@@ -6,6 +6,7 @@
   "routes": [
     { "src": "/ussd", "dest": "/api/ussd.js" },
     { "src": "/stkpush", "dest": "/api/stkpush.js" },
+    { "src": "/sms", "dest": "/api/sms.js" },
     { "src": "/daraja-callback", "dest": "/api/daraja-callback.js" }
   ]
 }
