@@ -1,7 +1,7 @@
 import africastalking from "africastalking";
 
 const africastalkingClient = africastalking({
-  apiKey: process.env.AT_API_KEY,     // set these in Vercel dashboard
+  apiKey: process.env.AT_API_KEY,     
   username: process.env.AT_USERNAME,  // "sandbox" or your production username
 });
 
@@ -19,10 +19,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing 'to' or 'message'" });
     }
 
+    // ✅ Force one-way mode: use alphanumeric Sender ID if available
+    //    fallback to "FareCheck" if none is set
+    const senderId = process.env.AT_SENDER_ID || "FareCheck";
+
     const options = {
-      to: Array.isArray(to) ? to : [to], // allow single or multiple numbers
+      to: Array.isArray(to) ? to : [to],
       message,
-      from: process.env.AT_SENDER_ID,    // your approved Sender ID or shortcode
+      from: senderId
     };
 
     const response = await sms.send(options);
