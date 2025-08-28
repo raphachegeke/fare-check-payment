@@ -1,13 +1,13 @@
 {
-  "name": "fare-check",
+  "name": "fare-check-payment",
   "version": "1.0.0",
-  "description": "Matatu Fare Payment via USSD + M-Pesa Daraja",
+  "description": "Matatu Fare Payment via USSD + M-Pesa Daraja + Africa's Talking SMS",
   "main": "index.js",
   "scripts": {
     "start": "node api/ussd.js"
   },
   "dependencies": {
     "axios": "^1.6.7",
-    "africastalking": "^1.0.0"
+    "africastalking": "^0.7.4"
   }
 }
